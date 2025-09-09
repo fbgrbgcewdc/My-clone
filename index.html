@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mini YouTube Clone</title>
+<style>
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+}
+body {
+font-family: Arial, sans-serif;
+background: #f9f9f9;
+}
+header {
+background: #FF0000;
+color: white;
+padding: 10px;
+display: flex;
+align-items: center;
+}
+.logo {
+font-size: 1.5em;
+font-weight: bold;
+margin-right: 20px;
+}
+#searchInput {
+flex: 1;
+padding: 6px;
+font-size: 1em;
+}
+#searchBtn {
+padding: 6px 12px;
+margin-left: 10px;
+border: none;
+background: white;
+color: #FF0000;
+font-weight: bold;
+cursor: pointer;
+}
+main {
+padding: 20px;
+}
+#videoGrid {
+display: grid;
+gap: 20px;
+grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+.video-tile {
+background: white;
+padding: 10px;
+border-radius: 6px;
+box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+cursor: pointer;
+transition: transform 0.15s ease-in-out;
+}
+.video-tile:hover {
+transform: translateY(-3px);
+}
+.thumbnail {
+width: 100%;
+height: auto;
+border-radius: 4px;
+}
+.title {
+font-size: 1em;
+margin: 10px 0 4px 0;
+}
+.channel {
+font-size: 0.85em;
+color: #555;
+}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">MyTube</div>
+<input type="text" id="searchInput" placeholder="Search videos...">
+<button id="searchBtn">Search</button>
+</header>
+
+<main>
+<div id="videoGrid"></div>
+</main>
+
+<template id="videoTile">
+<div class="video-tile">
+<img class="thumbnail" src="" alt="Video Thumbnail">
+<h3 class="title"></h3>
+<p class="channel"></p>
+</div>
+</template>
+
+<script>
+const API_KEY = "AIzaSyCdNJr3LrTw1ObLmRp0nk5Rn2wr8AdnwI8"; // 🔑 Replace with your API key
+const videoGrid = document.getElementById("videoGrid");
+const videoTileTemplate = document.getElementById("videoTile");
+const searchBtn = document.getElementById("searchBtn");
+const searchInput = document.getElementById("searchInput");
+
+async function searchVideos(query) {
+const response = await fetch(
+`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodeURIComponent(query)}&key=${API_KEY}`
+);
+const data = await response.json();
+
+renderVideos(data.items);
+}
+
+function renderVideos(videos) {
+videoGrid.innerHTML = "";
+if (!videos.length) {
+videoGrid.innerHTML = "<p>No results found.</p>";
+return;
+}
+videos.forEach((video) => {
+const clone = videoTileTemplate.content.cloneNode(true);
+clone.querySelector(".thumbnail").src = video.snippet.thumbnails.medium.url;
+clone.querySelector(".title").textContent = video.snippet.title;
+clone.querySelector(".channel").textContent = video.snippet.channelTitle;
+clone.querySelector(".video-tile").addEventListener("click", () => {
+const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`;
+window.open(videoUrl, "_blank");
+});
+videoGrid.appendChild(clone);
+});
+}
+
+searchBtn.addEventListener("click", () => {
+const query = searchInput.value.trim();
+if (query) searchVideos(query);
+});
+
+searchInput.addEventListener("keypress", (e) => {
+if (e.key === "Enter") {
+searchBtn.click();
+}
+});
+
+// Default search on load
+window.addEventListener("load", () => {
+searchVideos("trending music");
+});
+</script>
+</body>
+</html>
